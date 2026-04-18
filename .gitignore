@@ -5,3 +5,5 @@ uploads/*
 !uploads/.gitkeep
 .vscode/
 .DS_Store
+server/uploads/*
+!server/uploads/.gitkeep
