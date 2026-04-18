@@ -1,0 +1,11 @@
+{
+  "name": "MARYAMA TURBANS",
+  "short_name": "Maryama",
+  "description": "Elegant turban headbands and fashion wraps.",
+  "theme_color": "#0b1f4d",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/"
+}

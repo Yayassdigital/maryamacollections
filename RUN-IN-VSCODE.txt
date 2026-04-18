@@ -1,0 +1,9 @@
+1. Open this folder in VS Code.
+2. Make sure MongoDB is installed and running on your PC.
+3. Open Terminal 1 and run: npm run install-all
+4. In Terminal 1 run: npm run dev:server
+5. In Terminal 2 run: npm run dev:client
+6. Open http://localhost:5173
+
+Admin email: maryamacollections@gmail.com
+Create the admin account on /signup first, then log in with the same password.

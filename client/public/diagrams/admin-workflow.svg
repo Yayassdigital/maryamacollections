@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #0b1f4d; stroke-width: 2; }
+      .muted { fill: #e9eef8; stroke: #8ea0c5; stroke-width: 1.5; }
+      .title { font: 700 32px Arial, Helvetica, sans-serif; fill: #0b1f4d; }
+      .subtitle { font: 400 18px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .label { font: 700 18px Arial, Helvetica, sans-serif; fill: #0b1f4d; }
+      .line { stroke: #8f6a3a; stroke-width: 4; fill: none; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" class="bg"/>
+  <text x="60" y="64" class="title">Admin Workflow Diagram</text>
+  <text x="60" y="100" class="subtitle">Step-by-step operating path for the store administrator</text>
+  <rect x="80" y="260" width="180" height="90" rx="18" class="panel"/><text x="140" y="315" class="label">Admin Login</text>
+  <rect x="320" y="260" width="200" height="90" rx="18" class="muted"/><text x="370" y="315" class="label">Dashboard Summary</text>
+  <rect x="580" y="150" width="220" height="90" rx="18" class="muted"/><text x="635" y="205" class="label">Manage Products</text>
+  <rect x="580" y="260" width="220" height="90" rx="18" class="muted"/><text x="650" y="315" class="label">Manage Orders</text>
+  <rect x="580" y="370" width="220" height="90" rx="18" class="muted"/><text x="645" y="425" class="label">Manage Coupons</text>
+  <rect x="860" y="260" width="220" height="90" rx="18" class="panel"/><text x="912" y="315" class="label">Analytics Review</text>
+  <path d="M260 305 L320 305" class="line"/>
+  <path d="M520 305 L580 195" class="line"/>
+  <path d="M520 305 L580 305" class="line"/>
+  <path d="M520 305 L580 415" class="line"/>
+  <path d="M800 305 L860 305" class="line"/>
+</svg>

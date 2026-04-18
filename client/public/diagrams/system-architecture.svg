@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #0b1f4d; stroke-width: 2; rx: 22; ry: 22; }
+      .muted { fill: #e9eef8; stroke: #8ea0c5; stroke-width: 1.5; rx: 18; ry: 18; }
+      .title { font: 700 32px Arial, Helvetica, sans-serif; fill: #0b1f4d; }
+      .subtitle { font: 400 18px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .heading { font: 700 22px Arial, Helvetica, sans-serif; fill: #0b1f4d; }
+      .text { font: 400 16px Arial, Helvetica, sans-serif; fill: #111827; }
+      .accent { fill: #0b1f4d; stroke: #0b1f4d; stroke-width: 2; rx: 18; ry: 18; }
+      .accent-text { font: 700 18px Arial, Helvetica, sans-serif; fill: #ffffff; }
+      .line { stroke: #8f6a3a; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8f6a3a" />
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" class="bg"/>
+  <text x="60" y="64" class="title">System Architecture Diagram</text>
+  <text x="60" y="100" class="subtitle">MARYAMA TURBANS full-stack structure for customer and admin operations</text>
+  <rect x="70" y="150" width="260" height="140" class="panel"/>
+  <text x="100" y="195" class="heading">React Frontend</text>
+  <text x="100" y="225" class="text">• Storefront pages</text>
+  <text x="100" y="250" class="text">• Admin dashboard</text>
+  <text x="100" y="275" class="text">• Cart, checkout, profile</text>
+  <rect x="470" y="140" width="300" height="160" class="accent"/>
+  <text x="555" y="190" class="accent-text">Express API Server</text>
+  <text x="520" y="225" class="accent-text">Auth • Products • Orders</text>
+  <text x="520" y="255" class="accent-text">Coupons • Analytics • Uploads</text>
+  <rect x="910" y="150" width="220" height="140" class="panel"/>
+  <text x="975" y="195" class="heading">MongoDB</text>
+  <text x="950" y="225" class="text">Users</text>
+  <text x="950" y="250" class="text">Products</text>
+  <text x="950" y="275" class="text">Orders &amp; Coupons</text>
+  <rect x="470" y="380" width="300" height="120" class="muted"/>
+  <text x="540" y="425" class="heading">Local Upload Storage</text>
+  <text x="555" y="455" class="text">Product galleries / media</text>
+  <rect x="90" y="560" width="260" height="120" class="muted"/>
+  <text x="145" y="605" class="heading">Customer Flow</text>
+  <text x="120" y="635" class="text">Browse → Cart → Checkout → Orders</text>
+  <rect x="850" y="560" width="260" height="120" class="muted"/>
+  <text x="920" y="605" class="heading">Admin Flow</text>
+  <text x="885" y="635" class="text">Products → Coupons → Orders → Analytics</text>
+  <path d="M330 220 L470 220" class="line"/>
+  <path d="M770 220 L910 220" class="line"/>
+  <path d="M620 300 L620 380" class="line"/>
+  <path d="M350 620 C470 620, 470 620, 540 500" class="line"/>
+  <path d="M850 620 C760 620, 760 620, 700 500" class="line"/>
+</svg>

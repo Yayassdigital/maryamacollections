@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #0b1f4d; stroke-width: 2; }
+      .muted { fill: #e9eef8; stroke: #8ea0c5; stroke-width: 1.5; }
+      .title { font: 700 32px Arial, Helvetica, sans-serif; fill: #0b1f4d; }
+      .subtitle { font: 400 18px Arial, Helvetica, sans-serif; fill: #4b5563; }
+      .label { font: 700 18px Arial, Helvetica, sans-serif; fill: #0b1f4d; }
+      .line { stroke: #8f6a3a; stroke-width: 4; fill: none; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" class="bg"/>
+  <text x="60" y="64" class="title">Customer Workflow Diagram</text>
+  <text x="60" y="100" class="subtitle">Customer journey from discovery to order success</text>
+  <rect x="70" y="290" width="170" height="90" rx="18" class="panel"/><text x="108" y="345" class="label">Browse Store</text>
+  <rect x="280" y="290" width="170" height="90" rx="18" class="muted"/><text x="320" y="345" class="label">View Product</text>
+  <rect x="490" y="290" width="170" height="90" rx="18" class="muted"/><text x="525" y="345" class="label">Select Variant</text>
+  <rect x="700" y="290" width="170" height="90" rx="18" class="muted"/><text x="752" y="345" class="label">Checkout</text>
+  <rect x="910" y="290" width="190" height="90" rx="18" class="panel"/><text x="942" y="345" class="label">Order Success</text>
+  <path d="M240 335 L280 335" class="line"/>
+  <path d="M450 335 L490 335" class="line"/>
+  <path d="M660 335 L700 335" class="line"/>
+  <path d="M870 335 L910 335" class="line"/>
+  <rect x="460" y="520" width="250" height="90" rx="18" class="muted"/><text x="505" y="575" class="label">Track Orders / Reorder</text>
+  <path d="M1005 380 C1005 470, 800 500, 710 555" class="line"/>
+</svg>
