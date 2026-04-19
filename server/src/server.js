@@ -1,12 +1,13 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import { fileURLToPath } from "url";
+
 import connectDB from "./config/db.js";
 import { sanitizeRequest } from "./middleware/sanitizeMiddleware.js";
 import productRoutes from "./routes/productRoutes.js";
@@ -18,7 +19,6 @@ import adminUserRoutes from "./routes/adminUserRoutes.js";
 import adminSummaryRoutes from "./routes/adminSummaryRoutes.js";
 import adminCouponRoutes from "./routes/adminCouponRoutes.js";
 
-dotenv.config();
 connectDB();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,7 +34,9 @@ const apiLimiter = rateLimit({
   limit: 300,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many requests from this device. Please wait a little and try again." },
+  message: {
+    message: "Too many requests from this device. Please wait a little and try again.",
+  },
 });
 
 const authLimiter = rateLimit({
@@ -42,21 +44,32 @@ const authLimiter = rateLimit({
   limit: 40,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { message: "Too many authentication attempts. Please slow down and try again." },
+  message: {
+    message: "Too many authentication attempts. Please slow down and try again.",
+  },
 });
 
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
 app.use(compression());
-app.use(cors({
-  origin: process.env.CLIENT_URL || true,
-  credentials: true,
-}));
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true, limit: "5mb" }));
+
 app.use(sanitizeRequest);
 app.use("/uploads", express.static(uploadsPath));
+
 app.use("/api", apiLimiter);
 app.use("/api/auth", authLimiter);
 
@@ -78,19 +91,32 @@ app.use((req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  if (error?.message === "Only JPG, PNG, WEBP, and GIF image files are allowed") {
-    return res.status(400).json({ message: error.message });
+  console.error("GLOBAL SERVER ERROR:", error);
+
+  if (
+    error?.message?.includes("Only JPG") ||
+    error?.message?.includes("JPEG") ||
+    error?.message?.includes("PNG") ||
+    error?.message?.includes("WEBP") ||
+    error?.message?.includes("GIF")
+  ) {
+    return res.status(400).json({
+      message: error.message,
+      error: error.message,
+    });
   }
 
   if (error?.code === "LIMIT_FILE_SIZE") {
-    return res.status(400).json({ message: "Image must be 5MB or smaller" });
+    return res.status(400).json({
+      message: "Image must be 5MB or smaller",
+      error: "Image must be 5MB or smaller",
+    });
   }
 
-  if (error) {
-    return res.status(500).json({ message: error.message || "Server error" });
-  }
-
-  next();
+  return res.status(error?.status || 500).json({
+    message: error?.message || "Server error",
+    error: error?.message || "Unknown error",
+  });
 });
 
 const PORT = process.env.PORT || 5000;

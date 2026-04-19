@@ -1,11 +1,5 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import Product from "../models/Product.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsDir = path.join(__dirname, "../../uploads");
+import cloudinary from "../config/cloudinary.js";
 
 const parseNumber = (value, fallback = 0) => {
   if (value === undefined || value === null || value === "") return fallback;
@@ -19,12 +13,45 @@ const parseBoolean = (value) => {
 };
 
 const parseList = (value) => {
-  if (Array.isArray(value)) return value.filter(Boolean);
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
   if (typeof value !== "string") return [];
+
   return value
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+};
+
+const parseImages = (value) => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item).trim()).filter(Boolean);
+      }
+    } catch {
+      // ignore JSON parse failure and fall back to comma-separated parsing
+    }
+
+    return trimmed
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
 };
 
 const parseVariants = (value, existingVariants = []) => {
@@ -73,26 +100,9 @@ const ensureUniqueSlug = async (baseSlug, existingId = null) => {
   }
 };
 
-const buildImageUrl = (req, filename) => {
-  if (!filename) return "";
-  return `${req.protocol}://${req.get("host")}/uploads/${filename}`;
-};
-
-const deleteLocalImage = (imageUrl) => {
-  if (!imageUrl || !imageUrl.includes("/uploads/")) return;
-
-  const filename = imageUrl.split("/uploads/")[1];
-  if (!filename) return;
-
-  const filePath = path.join(uploadsDir, filename);
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-  }
-};
-
 const getUploadedImages = (req) => {
   const uploadedFiles = Array.isArray(req.files) ? req.files : [];
-  return uploadedFiles.map((file) => buildImageUrl(req, file.filename)).filter(Boolean);
+  return uploadedFiles.map((file) => file.path).filter(Boolean);
 };
 
 const unique = (items = []) => [...new Set(items.filter(Boolean))];
@@ -116,6 +126,31 @@ const buildDiscountValues = (price, incomingDiscountPrice, incomingDiscountPerce
   return { discountPrice, discountPercent };
 };
 
+const extractCloudinaryPublicId = (imageUrl) => {
+  if (!imageUrl || typeof imageUrl !== "string") return null;
+  if (!imageUrl.includes("res.cloudinary.com")) return null;
+
+  const cleanUrl = imageUrl.split("?")[0];
+  const match = cleanUrl.match(/\/upload\/(?:v\d+\/)?(.+)\.[a-zA-Z0-9]+$/);
+
+  return match ? match[1] : null;
+};
+
+const deleteCloudinaryImage = async (imageUrl) => {
+  try {
+    const publicId = extractCloudinaryPublicId(imageUrl);
+    if (!publicId) return;
+
+    await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+  } catch (error) {
+    console.error("Cloudinary delete error:", error.message);
+  }
+};
+
+const deleteCloudinaryImages = async (images = []) => {
+  await Promise.all(images.map((imageUrl) => deleteCloudinaryImage(imageUrl)));
+};
+
 const normalizeProductPayload = async (req, existingProduct = null) => {
   const name = req.body.name?.trim() || existingProduct?.name || "";
   const rawSlug = req.body.slug?.trim() || name || existingProduct?.slug || "";
@@ -123,8 +158,19 @@ const normalizeProductPayload = async (req, existingProduct = null) => {
 
   const variants = parseVariants(req.body.variants, existingProduct?.variants || []);
   const uploadedImages = getUploadedImages(req);
-  const existingImages = existingProduct?.images || (existingProduct?.image ? [existingProduct.image] : []);
-  const incomingImages = uploadedImages.length > 0 ? uploadedImages : existingImages;
+  const bodyImages = parseImages(req.body.images);
+  const existingImages = existingProduct?.images?.length
+    ? existingProduct.images
+    : existingProduct?.image
+    ? [existingProduct.image]
+    : [];
+
+  const incomingImages =
+    uploadedImages.length > 0
+      ? uploadedImages
+      : bodyImages.length > 0
+      ? bodyImages
+      : existingImages;
 
   const colors = unique([...parseList(req.body.colors), ...variants.map((item) => item.color)]);
   const sizes = unique([...parseList(req.body.sizes), ...variants.map((item) => item.size)]);
@@ -173,6 +219,7 @@ export const adminGetProducts = async (req, res) => {
     const products = await Product.find().sort({ createdAt: -1 });
     res.status(200).json(products);
   } catch (error) {
+    console.error("ADMIN GET PRODUCTS ERROR:", error);
     res.status(500).json({ message: "Failed to fetch admin products", error: error.message });
   }
 };
@@ -187,6 +234,7 @@ export const adminGetSingleProduct = async (req, res) => {
 
     res.status(200).json(product);
   } catch (error) {
+    console.error("ADMIN GET SINGLE PRODUCT ERROR:", error);
     res.status(500).json({ message: "Failed to fetch product", error: error.message });
   }
 };
@@ -194,10 +242,19 @@ export const adminGetSingleProduct = async (req, res) => {
 export const adminCreateProduct = async (req, res) => {
   try {
     const payload = await normalizeProductPayload(req);
+
+    if (!payload.image) {
+      return res.status(400).json({ message: "Please upload at least one product image" });
+    }
+
     const product = await Product.create(payload);
     res.status(201).json(product);
   } catch (error) {
-    res.status(500).json({ message: "Failed to create product", error: error.message });
+    console.error("ADMIN CREATE PRODUCT ERROR:", error);
+    res.status(500).json({
+      message: "Failed to create product",
+      error: error.message,
+    });
   }
 };
 
@@ -212,39 +269,52 @@ export const adminUpdateProduct = async (req, res) => {
     const previousImages = product.images?.length ? [...product.images] : product.image ? [product.image] : [];
     Object.assign(product, await normalizeProductPayload(req, product));
 
+    if (!product.image) {
+      return res.status(400).json({ message: "Product must have at least one image" });
+    }
+
     const updatedProduct = await product.save();
 
     if (Array.isArray(req.files) && req.files.length > 0) {
-      previousImages.forEach((imageUrl) => {
-        if (!updatedProduct.images.includes(imageUrl)) {
-          deleteLocalImage(imageUrl);
-        }
-      });
+      const removedImages = previousImages.filter((imageUrl) => !updatedProduct.images.includes(imageUrl));
+      await deleteCloudinaryImages(removedImages);
     }
 
     res.status(200).json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: "Failed to update product", error: error.message });
+    console.error("ADMIN UPDATE PRODUCT ERROR:", error);
+    res.status(500).json({
+      message: "Failed to update product",
+      error: error.message,
+    });
   }
 };
 
 export const adminToggleReviewVisibility = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
     const review = product.reviews.id(req.params.reviewId);
+
     if (!review) {
       return res.status(404).json({ message: "Review not found" });
     }
 
     review.isHidden = !review.isHidden;
+
     const visibleReviews = product.reviews.filter((item) => !item.isHidden);
     product.numReviews = visibleReviews.length;
     product.rating = visibleReviews.length
-      ? Number((visibleReviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / visibleReviews.length).toFixed(1))
+      ? Number(
+          (
+            visibleReviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) /
+            visibleReviews.length
+          ).toFixed(1)
+        )
       : 0;
 
     await product.save();
@@ -254,6 +324,7 @@ export const adminToggleReviewVisibility = async (req, res) => {
       product,
     });
   } catch (error) {
+    console.error("ADMIN TOGGLE REVIEW ERROR:", error);
     res.status(500).json({ message: "Failed to update review visibility", error: error.message });
   }
 };
@@ -267,11 +338,13 @@ export const adminDeleteProduct = async (req, res) => {
     }
 
     const images = product.images?.length ? product.images : product.image ? [product.image] : [];
-    images.forEach((imageUrl) => deleteLocalImage(imageUrl));
+    await deleteCloudinaryImages(images);
+
     await product.deleteOne();
 
     res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
+    console.error("ADMIN DELETE PRODUCT ERROR:", error);
     res.status(500).json({ message: "Failed to delete product", error: error.message });
   }
 };

@@ -1,39 +1,42 @@
-import fs from "fs";
-import path from "path";
 import multer from "multer";
-import { fileURLToPath } from "url";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsDir = path.join(__dirname, "../../uploads");
+const allowedMimeTypes = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 
-fs.mkdirSync(uploadsDir, { recursive: true });
+const allowedFormats = ["jpg", "jpeg", "png", "webp", "gif"];
 
-const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const safeName =
+      file.originalname
+        ?.toLowerCase()
+        ?.replace(/\.[^/.]+$/, "")
+        ?.replace(/[^a-z0-9]+/g, "-")
+        ?.replace(/^-+|-+$/g, "") || "image";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const safeName = file.originalname
-      .toLowerCase()
-      .replace(/[^a-z0-9.]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-
-    cb(null, `${Date.now()}-${safeName}`);
+    return {
+      folder: "maryama-collections",
+      resource_type: "image",
+      public_id: `${Date.now()}-${safeName}`,
+      allowed_formats: allowedFormats,
+    };
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  const extension = path.extname(file.originalname || "").toLowerCase();
-  if (allowedMimeTypes.has(file.mimetype) && allowedExtensions.has(extension)) {
-    cb(null, true);
-    return;
+  if (!allowedMimeTypes.has(file.mimetype)) {
+    return cb(new Error("Only JPG, JPEG, PNG, WEBP, and GIF image files are allowed"));
   }
 
-  cb(new Error("Only JPG, PNG, WEBP, and GIF image files are allowed"));
+  cb(null, true);
 };
 
 const upload = multer({
