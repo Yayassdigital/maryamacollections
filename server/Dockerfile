@@ -10,7 +10,6 @@ RUN npm config delete proxy || true \
  && npm config set fetch-retries 5 \
  && npm config set fetch-retry-mintimeout 20000 \
  && npm config set fetch-retry-maxtimeout 120000 \
- && npm config set timeout 120000 \
  && npm install --omit=dev --no-audit --no-fund
 
 COPY server/ ./
